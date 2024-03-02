@@ -26,6 +26,7 @@ items = {
 player = {
     "name": "",
     "level": 1,
+    "gold": 0,
     "maxhealth": 10,
     "health": 10,
     "minattack": 30,
@@ -44,10 +45,12 @@ slime = {
     "minattack": 0,
     "maxattack": 2,
     "exp": 3,
+    "mingold": 0,
+    "maxgold": 2,
     "perc1/1": 1,
-    "perc2/1": 1,
-    "chancedrop1": random.randint(1, 1),
-    "drop1": "Goo"
+    "perc2/1": 3,
+    "chancedrop1": random.randint(1, 3),
+    "drop1": items["valuables"][0]
 }      
 
 goblin = {
@@ -58,10 +61,12 @@ goblin = {
     "minattack": 0,
     "maxattack": 3,
     "exp": 5,
+    "mingold": 0,
+    "maxgold": 6,
     "perc1/1": 1,
-    "perc2/1": 1,
-    "chancedrop1": random.randint(1, 1),
-    "drop1": "Dagger"
+    "perc2/1": 7,
+    "chancedrop1": random.randint(1, 7),
+    "drop1": items["weapons"][1]
 }
 
 def choose_random_enemy(*args):
@@ -82,7 +87,9 @@ def playerequipped():
     global playerequipment
     playerequipment = list(playerequipment)
     playerequipment.sort(key=lambda x: x['name'] if isinstance(x, dict) else x)
-    return playerequipment
+    for item in playerequipment:
+        print(item)
+
 
 def currentexpe():
     global player
@@ -126,12 +133,11 @@ def equip_item(item):
     global player
     if item is None:
         print("No item selected.")
-    elif item['name'] in playerequipment: 
+    elif item in [inv['name'] for inv in playerequipment]:
         print("Item is already equipped.")
     else:
-        playerequipment.append(item['name'])
-        print(f"{item['name']} equipped.")
-
+        playerequipment.append(item)
+        print(f"{item} equipped.")
 
 
 def playerinfo():
@@ -143,7 +149,8 @@ def playerinfo():
         Max Health: {player["maxhealth"]}
         Health: {player["health"]}
         EXP: {currentexpe()}
-        EQUIPPED: {playerequipped()}
+        GOLD: {player["gold"]}
+        {playerequipped()}
     
     """)
 
@@ -152,8 +159,10 @@ def attack(attacker):
     return damage
 
 def resetentity(entity):
+    global entitygold
     entity["health"] = entity["maxhealth"]
     entity["chancedrop1"] = random.randint(entity["perc1/1"], entity["perc2/1"])
+    entitygold = random.randint(entity["mingold"], entity["maxgold"])
 
 def askplayername():
     global player
@@ -177,6 +186,7 @@ def battle(entity):
     global player
     global playerdamage
     global entitydamage
+    entitygold = random.randint(entity["mingold"], entity["maxgold"])
     print(f"A battle against {entity["name"]} has begun!")
 
     
@@ -200,6 +210,7 @@ def battle(entity):
         elif entity["health"] <= 0:
             print(f"You defeated the {entity["name"]}. You have gained {entity["exp"]} experience points.") #KILLED THE ENTITY
             gotexp(entity["exp"])
+            player["gold"] += entitygold
             itemdropchance(entity)
             resetentity(entity)
             break
@@ -268,11 +279,10 @@ def game():
             print("Saving not impmented yet!") 
             
             
-
-        
-##############################################################################################################################################################       
+  
 
 game()
 
 
-#WEIRD BUG WHEN TRYING TO EQUIP AN DAGGER
+
+#NEED TO MAKE WEAPONS AND ARMOR STATUS APLY, MAKE UNNEQUIPABLE VALUABLES AND FIX PRINTING "NONE" WHEN PRINTING EQUIPPED ITEMS AT PLAYER INFO
