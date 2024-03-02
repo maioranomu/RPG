@@ -12,14 +12,14 @@ def clear_screen():
 
 items = {
     "weapons": [
-        {"name": "LEGENDARY GOD GREATSWORD ULTRA++", "type": "sword", "mindamage": 100, "maxdamage": 200},
-        {"name": "Dagger", "type": "dagger", "mindamage": 3, "maxdamage": 5}
+        {"name": "LEGENDARY GOD GREATSWORD ULTRA++", "type": "Sword", "mindamage": 100, "maxdamage": 200},
+        {"name": "Dagger", "type": "Dagger", "mindamage": 3, "maxdamage": 5}
     ],
     "valuables": [
         {"name": "Goo", "value": 5}
     ],
     "armor": [
-        {"name": "Basic Helmet", "type": "helmet", "defense": 2}
+        {"name": "Basic Helmet", "type": "Helmet", "defense": 2}
     ]
 }
 
@@ -29,8 +29,9 @@ player = {
     "gold": 0,
     "maxhealth": 10,
     "health": 10,
-    "minattack": 30,
-    "maxattack": 31,
+    "defense": 0,
+    "minattack": 0,
+    "maxattack": 4,
     "chancedrop1": random.randint(0, 3),
 }
 
@@ -87,8 +88,16 @@ def playerequipped():
     global playerequipment
     playerequipment = list(playerequipment)
     playerequipment.sort(key=lambda x: x['name'] if isinstance(x, dict) else x)
+    equipped_items = ""
     for item in playerequipment:
-        print(item)
+        status = ""
+        for key, value in item.items():
+            if key != 'name' and key != 'type':
+                status += f"{key.capitalize()}: {value}, "
+        status = status.rstrip(', ') if status else "No status information available"
+        equipped_items += f"{item.get('name', '')}, Type: {item.get('type', '')}, Status: {status}\n"
+    return equipped_items
+
 
 
 def currentexpe():
@@ -115,11 +124,11 @@ def inventory(*args):
             if item_index.isdigit():
                 item_index = int(item_index)
                 if 1 <= item_index <= len(inventorylist):
-                    return inventorylist[item_index - 1]
+                    return inventorylist[item_index - 1]['name']
                 else:
                     print("Invalid item index.")
             elif not item_index.strip():
-                return None  
+                return None
             else:
                 print("Invalid input.")
     else:
@@ -127,17 +136,24 @@ def inventory(*args):
             inventorylist.append(arg)
 
 
-
-
-def equip_item(item):
+def equip_item(item_name):
     global player
-    if item is None:
-        print("No item selected.")
-    elif item in [inv['name'] for inv in playerequipment]:
-        print("Item is already equipped.")
+    item_found = None
+    for item in inventorylist:
+        if isinstance(item, dict) and item.get('name') == item_name:
+            item_found = item
+            break
+    
+    if item_found:
+        if item_name in [inv['name'] for inv in playerequipment]:
+            print("Item is already equipped.")
+        else:
+            inventorylist.remove(item_found) 
+            playerequipment.append(item_found)
+            print(f"{item_name} equipped.")
     else:
-        playerequipment.append(item)
-        print(f"{item} equipped.")
+        print("Item not found in inventory.")
+
 
 
 def playerinfo():
@@ -150,7 +166,9 @@ def playerinfo():
         Health: {player["health"]}
         EXP: {currentexpe()}
         GOLD: {player["gold"]}
-        {playerequipped()}
+        
+Items Equipped: 
+{playerequipped()}
     
     """)
 
@@ -216,6 +234,9 @@ def battle(entity):
             break
             
         entitydamage = attack(entity)
+        entitydamage -= player["defense"]
+        if entitydamage <= 0:
+            entitydamage = 0
         player["health"] -= entitydamage
         
         if entitydamage == 0:
@@ -242,17 +263,17 @@ def game():
         
     if player["name"].lower() == "dev":
         
-        gotexp(1000)
+        gotexp(10000)
         inventory(items["weapons"][0])
     
     while player["health"] > 0:
         
-        actionlist = ["1", "2" ,"3" ,"4"]
-        action = input("What do you want to do? [1 FIGHT | 2 INVENTORY | 3 PLAYER INFO | 4 SAVE] ")
+        actionlist = ["1", "2" ,"3" ,"4", "c"]
+        action = input("What do you want to do? [1 FIGHT | 2 INVENTORY | 3 PLAYER INFO | 4 SAVE | C CLEAR] ").lower()
         print("\n")
         
         while action not in actionlist:
-            action = input("What do you want to do? [1 FIGHT | 2 INVENTORY | 3 PLAYER INFO | 4 SAVE] ")
+            action = input("What do you want to do? [1 FIGHT | 2 INVENTORY | 3 PLAYER INFO | 4 SAVE | C CLEAR] ").lower()
             print("\n")
             
         if action == "1":
@@ -279,10 +300,9 @@ def game():
             print("Saving not impmented yet!") 
             
             
+        elif action == "c":
+            clear_screen()
+            
   
 
 game()
-
-
-
-#NEED TO MAKE WEAPONS AND ARMOR STATUS APLY, MAKE UNNEQUIPABLE VALUABLES AND FIX PRINTING "NONE" WHEN PRINTING EQUIPPED ITEMS AT PLAYER INFO
