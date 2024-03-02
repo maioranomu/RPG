@@ -12,8 +12,8 @@ def clear_screen():
 
 items = {
     "weapons": [
-        {"name": "LEGENDARY GOD GREATSWORD ULTRA++", "type": "sword", "damage": 10000},
-        {"name": "Dagger", "type": "dagger", "damage": 5}
+        {"name": "LEGENDARY GOD GREATSWORD ULTRA++", "type": "sword", "mindamage": 100, "maxdamage": 200},
+        {"name": "Dagger", "type": "dagger", "mindamage": 3, "maxdamage": 5}
     ],
     "valuables": [
         {"name": "Goo", "value": 5}
@@ -68,7 +68,6 @@ def choose_random_enemy(*args):
     return random.choice(args)
 
 
-
 def itemdropchance(entity):
     if entity["chancedrop1"] == 1:
         print(f"You got {entity['drop1']}!")
@@ -82,7 +81,7 @@ player["xpneeded"] = xpneededcalculator(player["level"])
 def playerequipped():
     global playerequipment
     playerequipment = list(playerequipment)
-    playerequipment.sort()
+    playerequipment.sort(key=lambda x: x['name'] if isinstance(x, dict) else x)
     return playerequipment
 
 def currentexpe():
@@ -274,3 +273,6 @@ def game():
 ##############################################################################################################################################################       
 
 game()
+
+
+#WEIRD BUG WHEN TRYING TO EQUIP AN DAGGER
