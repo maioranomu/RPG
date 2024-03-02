@@ -8,55 +8,82 @@ def clear_screen():
     elif os.name == 'nt':
         _ = os.system('cls')
 
+
+
+items = {
+    "weapons": [
+        {"name": "LEGENDARY GOD GREATSWORD ULTRA++", "type": "sword", "damage": 10000},
+        {"name": "Dagger", "type": "dagger", "damage": 5}
+    ],
+    "valuables": [
+        {"name": "Goo", "value": 5}
+    ],
+    "armor": [
+        {"name": "Basic Helmet", "type": "helmet", "defense": 2}
+    ]
+}
+
 player = {
     "name": "",
     "level": 1,
     "maxhealth": 10,
     "health": 10,
-    "minattack": 0,
-    "maxattack": 3,
+    "minattack": 30,
+    "maxattack": 31,
     "chancedrop1": random.randint(0, 3),
 }
 
 inventorylist = []
-playerquipment = []
+playerequipment = []
 
 slime = {
-    "name": "slime",
+    "index": 1,
+    "name": "Slime",
     "maxhealth": 5,
     "health": 5,
     "minattack": 0,
     "maxattack": 2,
     "exp": 3,
     "perc1/1": 1,
-    "perc2/1": 3,
-    "chancedrop1": random.randint(1, 3),
-    "drop1": "goo"
+    "perc2/1": 1,
+    "chancedrop1": random.randint(1, 1),
+    "drop1": "Goo"
 }      
 
 goblin = {
-    "name": "goblin",
+    "index": 2,
+    "name": "Goblin",
     "maxhealth": 7,
     "health": 7,
     "minattack": 0,
     "maxattack": 3,
     "exp": 5,
     "perc1/1": 1,
-    "perc2/1": 7,
-    "chancedrop1": random.randint(1, 7),
-    "drop1": "dagger"
+    "perc2/1": 1,
+    "chancedrop1": random.randint(1, 1),
+    "drop1": "Dagger"
 }
+
+def choose_random_enemy(*args):
+    return random.choice(args)
+
 
 
 def itemdropchance(entity):
     if entity["chancedrop1"] == 1:
-        print(f"You got {entity["drop1"]}!")
-        inventorylist.append({entity["drop1"]})
+        print(f"You got {entity['drop1']}!")
+        inventory(entity['drop1'])
 
 
 def xpneededcalculator(level):
     return level * 10
 player["xpneeded"] = xpneededcalculator(player["level"])
+
+def playerequipped():
+    global playerequipment
+    playerequipment = list(playerequipment)
+    playerequipment.sort()
+    return playerequipment
 
 def currentexpe():
     global player
@@ -66,11 +93,47 @@ def currentexpe():
     currentexpdisplay = f"{currentexp}/{player["level"] * 10}"
     return currentexpdisplay
     
-def inventory():
-    print("\n")
-    inventorylist.sort()
-    for item in inventorylist:
-        print(item)
+def inventory(*args):
+    global inventorylist
+    if args and args[0] == "open":
+        inventorylist = list(inventorylist)
+        inventorylist.sort(key=lambda x: x['name'] if isinstance(x, dict) else x)
+        for index, item in enumerate(inventorylist, start=1):
+            if isinstance(item, dict):
+                print(f"{index}. {item['name']}")
+            else:
+                print(f"{index}. {item}")
+
+        if inventorylist:
+            item_index = input("Enter the index of the item you want to equip (or press Enter to exit): ")
+            if item_index.isdigit():
+                item_index = int(item_index)
+                if 1 <= item_index <= len(inventorylist):
+                    return inventorylist[item_index - 1]
+                else:
+                    print("Invalid item index.")
+            elif not item_index.strip():
+                return None  
+            else:
+                print("Invalid input.")
+    else:
+        for arg in args:
+            inventorylist.append(arg)
+
+
+
+
+def equip_item(item):
+    global player
+    if item is None:
+        print("No item selected.")
+    elif item['name'] in playerequipment: 
+        print("Item is already equipped.")
+    else:
+        playerequipment.append(item['name'])
+        print(f"{item['name']} equipped.")
+
+
 
 def playerinfo():
     print(f"""
@@ -81,6 +144,7 @@ def playerinfo():
         Max Health: {player["maxhealth"]}
         Health: {player["health"]}
         EXP: {currentexpe()}
+        EQUIPPED: {playerequipped()}
     
     """)
 
@@ -119,7 +183,7 @@ def battle(entity):
     
     while player["health"] > 0 and entity["health"] > 0:
         print("\n")
-        print(f"{entity["name"].title()} HP: {entity["health"]}/{entity["maxhealth"]}")
+        print(f"{entity["name"]} HP: {entity["health"]}/{entity["maxhealth"]}")
         print(f"Player HP: {player["health"]}/{player["maxhealth"]}")
         input("")
         time.sleep(1)
@@ -155,35 +219,58 @@ def battle(entity):
             resetentity(entity)
             break
         
+def game():
+    global inventorylist
+    global inventory
+    global player
+    
+    clear_screen()
+    inventory(items["armor"][0])
+    
+    if player["name"] == "":
+        askplayername()
         
+    if player["name"].lower() == "dev":
+        
+        gotexp(1000)
+        inventory(items["weapons"][0])
+    
+    while player["health"] > 0:
+        
+        actionlist = ["1", "2" ,"3" ,"4"]
+        action = input("What do you want to do? [1 FIGHT | 2 INVENTORY | 3 PLAYER INFO | 4 SAVE] ")
+        print("\n")
+        
+        while action not in actionlist:
+            action = input("What do you want to do? [1 FIGHT | 2 INVENTORY | 3 PLAYER INFO | 4 SAVE] ")
+            print("\n")
+            
+        if action == "1":
+            battle(choose_random_enemy(goblin, slime))
+            
+        elif action == "2":
+            
+            if len(inventorylist) == 0:
+                print("You don't have anything in your inventory!")
+                print("\n")  
+                
+            else:
+                item_to_equip = inventory("open")  
+                if item_to_equip:
+                    equip_item(item_to_equip) 
+                    print("\n")
+            
+        elif action == "3":
+            
+            playerinfo()
+            print("\n")
+            
+        elif action == "4":
+            print("Saving not impmented yet!") 
+            
+            
+
         
 ##############################################################################################################################################################       
-clear_screen()
 
-
-if player["name"] == "":
-    askplayername()
-    
-if player["name"].lower() == "dev":
-    gotexp(100)
-    inventorylist.append("LEGENDARY GOD GREATSWORD ULTRA++")
-    inventorylist.append("LEGENDARY GOD GREATSWORD ULTRA++")
-    
-        
-playerinfo()
-inventory()
-
-    
-# while player["health"] > 0:
-    
-#     print(goblin["chancedrop1"])
-#     battle(goblin)
-#     print(slime["chancedrop1"])
-#     battle(slime)
-
-#     playerinfo()
-#     inventory()
-
-
-
-
+game()
