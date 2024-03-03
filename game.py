@@ -1,6 +1,7 @@
 import time
 import random
 import os
+import json
 
 def clear_screen():
     if os.name == 'posix':
@@ -8,7 +9,7 @@ def clear_screen():
     elif os.name == 'nt':
         _ = os.system('cls')
 
-
+data = "G:\Importante\Codes\PY\PROJECTS\Game\gamedata.txt"
 
 items = {
     "weapons": [
@@ -30,7 +31,7 @@ player = {
     "level": 1,
     "gold": 0,
     "maxhealth": 10,
-    "health": 10,
+    "health": 1,
     "defense": 0,
     "minattack": 0,
     "maxattack": 4,
@@ -100,6 +101,15 @@ def playerequipped():
         equipped_items += f"{item.get('name', '')}, Type: {item.get('type', '')}, Stats: {status}\n"
     return equipped_items
 
+
+def remove_random_item():
+    global inventorylist
+    if inventorylist:
+        random_item = random.choice(inventorylist)
+        inventorylist.remove(random_item)
+        print(f"{random_item['name']} has been removed from your inventory.")
+    else:
+        print("Your inventory is empty.")
 
 
 def currentexpe():
@@ -277,6 +287,7 @@ def battle(entity):
             player["gold"] += entitygold
             itemdropchance(entity)
             resetentity(entity)
+            input("")
             break
             
         entitydamage = attack(entity)
@@ -292,10 +303,41 @@ def battle(entity):
             print(f"The {entity["name"]} attacked you, dealing {entitydamage} damage. Leaving you at {player["health"]}HP!")
             
         elif player["health"] <= 0:
-            print(f"The {entity["name"]} attacked you, dealing {entitydamage} damage. Leaving you at {player["health"]}HP! GAME OVER!")
+            print(f"The {entity["name"]} attacked you, dealing {entitydamage} damage. Leaving you at {player["health"]}HP! You lost a random item and all your money, woke up at the hospital!")
+            player["gold"] = 0
+            remove_random_item()
             resetentity(entity)
+            input("")
             break
-        
+ 
+ 
+
+
+
+def save_game():
+    global player, inventorylist, playerequipment
+    data_to_save = {
+        "player": player,
+        "inventory": inventorylist,
+        "equipment": playerequipment
+    }
+    with open(data, 'w') as file:
+        json.dump(data_to_save, file, indent=4)
+    print("Game saved.")
+
+def load_game():
+    global player, inventorylist, playerequipment
+    try:
+        with open(data, 'r') as file:
+            data_loaded = json.load(file)
+            player = data_loaded.get('player', {})
+            inventorylist = data_loaded.get('inventory', [])
+            playerequipment = data_loaded.get('equipment', [])
+        print("Game loaded.")
+    except FileNotFoundError:
+        print("No previous save data found.")
+
+                
 def game():
     global inventorylist
     global inventory
@@ -308,41 +350,48 @@ def game():
     clear_screen()
     inventory(items["armor"][0])
     
+    createnewfile = input("Do you want to create a new game? (this will delete your old file!) (leave empty if no!) [YES] ")
+    if createnewfile == "YES":
+        save_game()
+        
+    else:
+        load_game()    
+    
     if player["name"] == "":
         askplayername()
         
-    if player["name"].lower() in devlist:
-        try:
-            howmuchgold = int(input("How much gold you want? "))
-        except ValueError:
-            howmuchgold = 0
-        player["gold"] += howmuchgold
-        try:
-            howmuchexp = int(input("How much xp you want? "))
-        except ValueError:
-            howmuchexp = 0
-        gotexp(howmuchexp)
-        
-        itemsquestion = input("You want 2 copies of each item? [y]")
-        if itemsquestion == "y":
-            for category in items.values():
-                for item in category:
-                    for _ in range(2):  # Add two copies of each item
-                        inventory(item)
+        if player["name"].lower() in devlist:
+            try:
+                howmuchgold = int(input("How much gold you want? "))
+            except ValueError:
+                howmuchgold = 0
+            player["gold"] += howmuchgold
+            try:
+                howmuchexp = int(input("How much xp you want? "))
+            except ValueError:
+                howmuchexp = 0
+            gotexp(howmuchexp)
             
+            itemsquestion = input("You want 2 copies of each item? [y]")
+            if itemsquestion == "y":
+                for category in items.values():
+                    for item in category:
+                        for _ in range(2):  # Add two copies of each item
+                            inventory(item)
+                
             
         
     time.sleep(0.2)
     while True:
         
-        actionlist = ["f", "i" ,"p" ,"s", "m", "save"]
-        print("What do you want to do? [F-FIGHT | I-INVENTORY | P-PLAYER INFO | S-SHOP | M-MAP | SAVE-SAVE] ")
+        actionlist = ["f", "i" ,"p" ,"s", "m", "save", "load"]
+        print("What do you want to do? [F-FIGHT | I-INVENTORY | P-PLAYER INFO | S-SHOP | M-MAP | SAVE-SAVE | LOAD-LOAD] ")
         action = input("\n").lower()
         time.sleep(0.2)
         clear_screen()
         
         while action not in actionlist:
-            print("What do you want to do? [F-FIGHT | I-INVENTORY | P-PLAYER INFO | S-SHOP | M-MAP | SAVE-SAVE] ")
+            print("What do you want to do? [F-FIGHT | I-INVENTORY | P-PLAYER INFO | S-SHOP | M-MAP | SAVE-SAVE | LOAD-LOAD] ")
             action = input("\n").lower()
             time.sleep(0.2)
             clear_screen()
@@ -456,12 +505,18 @@ def game():
                 
             
             clear_screen()
-            
+
         elif action == "save":
-            print("Saving not impmented yet!")
+            save_game() 
             input("\n")
             time.sleep(0.2)
-            clear_screen()    
+            clear_screen()
+            
+        elif action == "load":
+            load_game() 
+            input("\n")
+            time.sleep(0.2)
+            clear_screen()        
             
   
 game()
