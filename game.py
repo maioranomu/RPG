@@ -314,28 +314,42 @@ def battle(entity):
 
 
 
+import json
+
 def save_game():
     global player, inventorylist, playerequipment
-    data_to_save = {
+    
+    game_data = {
         "player": player,
         "inventory": inventorylist,
         "equipment": playerequipment
     }
-    with open(data, 'w') as file:
-        json.dump(data_to_save, file, indent=4)
-    print("Game saved.")
+    
+    try:
+        with open(data, 'w') as file:
+            json.dump(game_data, file)
+        print("Game saved successfully.")
+    except Exception as e:
+        print(f"An error occurred while saving the game: {e}")
 
 def load_game():
     global player, inventorylist, playerequipment
+    
     try:
         with open(data, 'r') as file:
-            data_loaded = json.load(file)
-            player = data_loaded.get('player', {})
-            inventorylist = data_loaded.get('inventory', [])
-            playerequipment = data_loaded.get('equipment', [])
-        print("Game loaded.")
+            game_data = json.load(file)
+            player = game_data.get("player", {})
+            inventorylist = game_data.get("inventory", [])
+            playerequipment = game_data.get("equipment", [])
+        print("Game loaded successfully.")
     except FileNotFoundError:
-        print("No previous save data found.")
+        print("Save file not found.")
+    except json.JSONDecodeError:
+        print("Error decoding JSON data from the file.")
+    except Exception as e:
+        print(f"An error occurred while loading the game: {e}")
+
+
 
                 
 def game():
@@ -350,14 +364,19 @@ def game():
     clear_screen()
     inventory(items["armor"][0])
     
-    createnewfile = input("Do you want to create a new game? (this will delete your old file!) (leave empty if no!) [YES] ")
-    if createnewfile == "YES":
-        save_game()
+    reset = input("Do you want to create a new game? (this will delete your old file!) (leave empty if no!) [YES] ").lower()
+    if reset == "yes":
+        with open(data, 'w') as file:
+            file.write("")
+            player["name"] = ""
+
         
     else:
         load_game()    
     
     if player["name"] == "":
+        print(player["name"])
+        print("YOOO")
         askplayername()
         
         if player["name"].lower() in devlist:
