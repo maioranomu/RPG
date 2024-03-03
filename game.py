@@ -267,8 +267,9 @@ def game():
     if player["name"] == "":
         askplayername()
         
-    if player["name"].lower() == "dev":
+    if player["name"].lower() == "mu" or "dev":
         
+        player["gold"] += 10000
         gotexp(10000)
         inventory(items["weapons"][0])
         
@@ -361,6 +362,3 @@ def game():
             
   
 game()
-
-
-#STILL NEEDS: UNEQUIP SYSTEM, SHOP, FIX BEING ABLE TO EQUIP VALUABLES, FIX BEING ABLE TO EQUIP MORE THAN 1 WEAPON, ADD MONSTERS, ADD WORLDS.
