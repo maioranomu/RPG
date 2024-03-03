@@ -372,7 +372,8 @@ def game():
 
         
     else:
-        load_game()    
+        load_game()
+        world = "1"    
     
     if player["name"] == "":
         askplayername()
