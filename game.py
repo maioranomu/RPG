@@ -312,17 +312,24 @@ def game():
         askplayername()
         
     if player["name"].lower() in devlist:
-        
-        howmuchgold = int(input("How much gold you want? "))
+        try:
+            howmuchgold = int(input("How much gold you want? "))
+        except ValueError:
+            howmuchgold = 0
         player["gold"] += howmuchgold
-        howmuchexp = int(input("How much xp you want? "))
+        try:
+            howmuchexp = int(input("How much xp you want? "))
+        except ValueError:
+            howmuchexp = 0
         gotexp(howmuchexp)
         
-        for category in items.values():
-            for item in category:
-                for _ in range(2):  # Add two copies of each item
-                    inventory(item)
-        
+        itemsquestion = input("You want 2 copies of each item? [y]")
+        if itemsquestion == "y":
+            for category in items.values():
+                for item in category:
+                    for _ in range(2):  # Add two copies of each item
+                        inventory(item)
+            
             
         
     time.sleep(0.2)
