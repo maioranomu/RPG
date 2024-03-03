@@ -375,8 +375,6 @@ def game():
         load_game()    
     
     if player["name"] == "":
-        print(player["name"])
-        print("YOOO")
         askplayername()
         
         if player["name"].lower() in devlist:
