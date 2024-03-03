@@ -12,14 +12,14 @@ def clear_screen():
 
 items = {
     "weapons": [
-        {"name": "LEGENDARY GOD GREATSWORD ULTRA++", "type": "Sword", "mindamage": 100, "maxdamage": 200},
-        {"name": "Dagger", "type": "Dagger", "mindamage": 3, "maxdamage": 5}
+        {"name": "LEGENDARY GOD GREATSWORD ULTRA++", "type": "Weapon", "mindamage": 100, "maxdamage": 200},
+        {"name": "Dagger", "type": "Weapon", "mindamage": 3, "maxdamage": 5}
     ],
     "valuables": [
         {"name": "Goo", "value": 5}
     ],
     "armor": [
-        {"name": "Basic Helmet", "type": "Helmet", "defense": 2}
+        {"name": "Basic Leather Helmet", "type": "Helmet", "defense": 2}
     ]
 }
 
@@ -128,12 +128,15 @@ def inventory(*args):
                 else:
                     print("Invalid item index.")
             elif not item_index.strip():
+                clear_screen()
                 return None
             else:
                 print("Invalid input.")
     else:
         for arg in args:
             inventorylist.append(arg)
+    time.sleep(1)
+    clear_screen()
 
 
 def equip_item(item_name):
@@ -151,6 +154,7 @@ def equip_item(item_name):
             inventorylist.remove(item_found) 
             playerequipment.append(item_found)
             print(f"{item_name} equipped.")
+            time.sleep(1)
     else:
         print("Item not found in inventory.")
 
@@ -254,7 +258,9 @@ def game():
     global inventorylist
     global inventory
     global player
-    
+    global world
+    global worldlist
+    world = "1"
     clear_screen()
     inventory(items["armor"][0])
     
@@ -265,44 +271,96 @@ def game():
         
         gotexp(10000)
         inventory(items["weapons"][0])
-    
-    while player["health"] > 0:
         
-        actionlist = ["1", "2" ,"3" ,"4", "c"]
-        action = input("What do you want to do? [1 FIGHT | 2 INVENTORY | 3 PLAYER INFO | 4 SAVE | C CLEAR] ").lower()
-        print("\n")
+    time.sleep(1)
+    while True:
+        
+        actionlist = ["f", "i" ,"p" ,"s", "m", "save"]
+        print("What do you want to do? [F-FIGHT | I-INVENTORY | P-PLAYER INFO | S-SHOP | M-MAP | SAVE-SAVE] ")
+        action = input("\n").lower()
+        time.sleep(0.2)
+        clear_screen()
         
         while action not in actionlist:
-            action = input("What do you want to do? [1 FIGHT | 2 INVENTORY | 3 PLAYER INFO | 4 SAVE | C CLEAR] ").lower()
-            print("\n")
+            print("What do you want to do? [F-FIGHT | I-INVENTORY | P-PLAYER INFO | S-SHOP | M-MAP | SAVE-SAVE] ")
+            action = input("\n").lower()
+            time.sleep(0.2)
+            clear_screen()
             
-        if action == "1":
-            battle(choose_random_enemy(goblin, slime))
+        if action == "f":
             
-        elif action == "2":
+            if world == "1":
+                print("You are at the slime island!")
+                battle(slime)
+                
+            elif world == "2":
+                print("You are at the cave!")
+                battle(choose_random_enemy(slime, goblin))    
+                
+            time.sleep(1)
+            clear_screen()
+            
+        elif action == "i":
             
             if len(inventorylist) == 0:
                 print("You don't have anything in your inventory!")
-                print("\n")  
+                input("\n") 
+                time.sleep(0.2)
+                clear_screen()
                 
             else:
                 item_to_equip = inventory("open")  
                 if item_to_equip:
                     equip_item(item_to_equip) 
                     print("\n")
+                    time.sleep(0.2)
+                    clear_screen()
             
-        elif action == "3":
+        elif action == "p":
             
             playerinfo()
-            print("\n")
-            
-        elif action == "4":
-            print("Saving not impmented yet!") 
-            
-            
-        elif action == "c":
+            input("\n")
+            time.sleep(0.2)
             clear_screen()
             
+        elif action == "s":
+            print("Shop not impmented yet!")
+            input("\n")
+            time.sleep(0.2)
+            clear_screen()
+            
+            
+        elif action == "m":
+            
+            if 0 < player["level"] <= 3:
+                worldlist = ["1"]
+                world = input("[1 - SLIME ISLE] ")
+                while world not in worldlist:
+                    world = input("[1 - SLIME ISLE] ")
+                                
+            elif 3 < player["level"] <= 5:
+                worldlist = ["1", "2"]
+                world = input("[1 - SLIME ISLE | 2 - CAVE] ")
+                while world not in worldlist:
+                    world = input("[1 - SLIME ISLE | 2 - CAVE] ")   
+                                
+            else:
+                worldlist = ["1", "2"]
+                world = input("[1 - SLIME ISLE | 2 - CAVE] ")
+                while world not in worldlist:
+                    world = input("[1 - SLIME ISLE | 2 - CAVE] ")  
+                
+            
+            clear_screen()
+            
+        elif action == "save":
+            print("Saving not impmented yet!")
+            input("\n")
+            time.sleep(0.2)
+            clear_screen()    
+            
   
-
 game()
+
+
+#STILL NEEDS: UNEQUIP SYSTEM, SHOP, FIX BEING ABLE TO EQUIP VALUABLES, FIX BEING ABLE TO EQUIP MORE THAN 1 WEAPON, ADD MONSTERS, ADD WORLDS.
