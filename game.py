@@ -20,7 +20,8 @@ items = {
         {"name": "Goo", "value": 5}
     ],
     "armor": [
-        {"name": "Basic Leather Helmet", "type": "Helmet", "defense": 2}
+        {"name": "Basic Leather Helmet", "type": "Helmet", "defense": 1},
+        {"name": "Iron Chest", "type": "Armor", "defense": 6}
     ]
 }
 
@@ -316,21 +317,12 @@ def game():
         player["gold"] += howmuchgold
         howmuchexp = int(input("How much xp you want? "))
         gotexp(howmuchexp)
-        inventory(items["weapons"][0])
-        for item in items["weapons"]:
-            index = 0
-            inventory(items["weapons"][index])
-            index += 1
-            
-        for item in items["armor"]:
-            index = 0
-            inventory(items["armor"][index])
-            index += 1
         
-        for item in items["valuables"]:
-            index = 0
-            inventory(items["valuables"][index])
-            index += 1    
+        for category in items.values():
+            for item in category:
+                for _ in range(2):  # Add two copies of each item
+                    inventory(item)
+        
             
         
     time.sleep(0.2)
@@ -385,7 +377,7 @@ def game():
             clear_screen()
             
         elif action == "s":
-            print("[S-SELL | 1 LIFE POTION 25$ | 2 WOODEN SWORD 100$]")
+            print("[S-SELL | 1 LIFE POTION 25$ | 2 WOODEN SWORD 100$ | 3 IRON CHEST 500$]")
             buy = input("\n")
             time.sleep(0.2)
             clear_screen()
@@ -423,6 +415,16 @@ def game():
                     
                 else:
                     print("Not enough gold.")
+                    
+            elif buy == "3":
+                
+                if player["gold"] >= 500:
+                    player["gold"] -= 500
+                    inventory(items["armor"][1])
+                    print("Wooden sword bought!")
+                    
+                else:
+                    print("Not enough gold.")        
             
             
         elif action == "m":
@@ -456,4 +458,3 @@ def game():
             
   
 game()
-
