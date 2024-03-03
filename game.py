@@ -13,7 +13,8 @@ def clear_screen():
 items = {
     "weapons": [
         {"name": "LEGENDARY GOD GREATSWORD ULTRA++", "type": "Weapon", "mindamage": 100, "maxdamage": 200},
-        {"name": "Dagger", "type": "Weapon", "mindamage": 3, "maxdamage": 5}
+        {"name": "Dagger", "type": "Weapon", "mindamage": 1, "maxdamage": 3},
+        {"name": "Wooden Sword", "type": "Weapon", "mindamage": 3, "maxdamage": 5}
     ],
     "valuables": [
         {"name": "Goo", "value": 5}
@@ -94,8 +95,8 @@ def playerequipped():
         for key, value in item.items():
             if key != 'name' and key != 'type':
                 status += f"{key.capitalize()}: {value}, "
-        status = status.rstrip(', ') if status else "No status information available"
-        equipped_items += f"{item.get('name', '')}, Type: {item.get('type', '')}, Status: {status}\n"
+        status = status.rstrip(', ') if status else "No stats information available"
+        equipped_items += f"{item.get('name', '')}, Type: {item.get('type', '')}, Stats: {status}\n"
     return equipped_items
 
 
@@ -115,7 +116,13 @@ def inventory(*args):
         inventorylist.sort(key=lambda x: x['name'] if isinstance(x, dict) else x)
         for index, item in enumerate(inventorylist, start=1):
             if isinstance(item, dict):
-                print(f"{index}. {item['name']}")
+                if item.get('type') in ['Weapon', 'Armor']:
+                    if item.get('type') == 'Weapon':
+                        print(f"{index}. {item['name']}")
+                    elif item.get('type') == 'Armor':
+                        print(f"{index}. {item['name']}")
+                else:
+                    print(f"{index}. {item['name']}")
             else:
                 print(f"{index}. {item}")
 
@@ -138,7 +145,6 @@ def inventory(*args):
     time.sleep(1)
     clear_screen()
 
-
 def equip_item(item_name):
     global player
     item_found = None
@@ -148,17 +154,51 @@ def equip_item(item_name):
             break
     
     if item_found:
-        if item_name in [inv['name'] for inv in playerequipment]:
-            print("Item is already equipped.")
-        else:
-            inventorylist.remove(item_found) 
+        item_type = item_found.get('type')
+    
+        if item_type in ["Weapon", "Armor", "Helmet"]: 
+            for equipped_item in playerequipment:
+                if equipped_item.get('type') == item_type:
+                    print(f"You already have a {item_type} equipped. Do you want to replace it?")
+                    replace = input("Enter 'Y' to replace or any other key to cancel: ")
+                    if replace.lower() == 'y':
+                        if equipped_item in playerequipment:
+                            inventorylist.append(equipped_item) 
+                            playerequipment.remove(equipped_item)
+                            if 'mindamage' in equipped_item:
+                                player['minattack'] -= equipped_item['mindamage']
+                            if 'maxdamage' in equipped_item:
+                                player['maxattack'] -= equipped_item['maxdamage']
+                            if 'defense' in equipped_item:
+                                player['defense'] -= equipped_item['defense']
+                            print(f"{equipped_item['name']} unequipped and added back to inventory.")
+                            break
+                        else:
+                            print("You don't have any equipped items of that type.")
+                            break
+                    else:
+                        print("Equipping canceled.")
+                        return
+
+            if item_found in inventorylist:
+                inventorylist.remove(item_found)
             playerequipment.append(item_found)
             print(f"{item_name} equipped.")
-            time.sleep(1)
+            
+            if 'mindamage' in item_found:
+                player['minattack'] += item_found['mindamage']
+            if 'maxdamage' in item_found:
+                player['maxattack'] += item_found['maxdamage']
+            if 'defense' in item_found:
+                player['defense'] += item_found['defense']
+        else:
+            print("You cannot equip this item.")
+            
+    elif item_found and item_found.get('type') == "Valuables":
+        print("You cannot equip valuables.")
+        
     else:
         print("Item not found in inventory.")
-
-
 
 def playerinfo():
     print(f"""
@@ -168,6 +208,7 @@ def playerinfo():
         Attack: {player["minattack"]}-{player["maxattack"]}
         Max Health: {player["maxhealth"]}
         Health: {player["health"]}
+        Defense: {player["defense"]}
         EXP: {currentexpe()}
         GOLD: {player["gold"]}
         
@@ -260,6 +301,8 @@ def game():
     global player
     global world
     global worldlist
+    global total_value
+    devlist = ["mu", "dev"]
     world = "1"
     clear_screen()
     inventory(items["armor"][0])
@@ -267,13 +310,30 @@ def game():
     if player["name"] == "":
         askplayername()
         
-    if player["name"].lower() == "mu" or "dev":
+    if player["name"].lower() in devlist:
         
-        player["gold"] += 10000
-        gotexp(10000)
+        howmuchgold = int(input("How much gold you want? "))
+        player["gold"] += howmuchgold
+        howmuchexp = int(input("How much xp you want? "))
+        gotexp(howmuchexp)
         inventory(items["weapons"][0])
+        for item in items["weapons"]:
+            index = 0
+            inventory(items["weapons"][index])
+            index += 1
+            
+        for item in items["armor"]:
+            index = 0
+            inventory(items["armor"][index])
+            index += 1
         
-    time.sleep(1)
+        for item in items["valuables"]:
+            index = 0
+            inventory(items["valuables"][index])
+            index += 1    
+            
+        
+    time.sleep(0.2)
     while True:
         
         actionlist = ["f", "i" ,"p" ,"s", "m", "save"]
@@ -325,10 +385,44 @@ def game():
             clear_screen()
             
         elif action == "s":
-            print("Shop not impmented yet!")
-            input("\n")
+            print("[S-SELL | 1 LIFE POTION 25$ | 2 WOODEN SWORD 100$]")
+            buy = input("\n")
             time.sleep(0.2)
             clear_screen()
+        
+            if buy.lower() == "s":
+                total_value = 0
+                for item in inventorylist:
+                    if item in items["valuables"]:
+                        total_value += item["value"]
+                player["gold"] += total_value
+                print(f"You sold all valuables for {total_value} gold.")
+                inventorylist = [item for item in inventorylist if item not in items["valuables"]]
+            
+            
+            elif buy == "1":
+                
+                if player["gold"] >= 25:
+                    player["gold"] -= 25
+                    player["health"] += 10
+                    
+                    if player["health"] > player["maxhealth"]:
+                        player["health"] = player["maxhealth"]
+                        
+                    print("Life potion used!")
+                    
+                else:
+                    print("Not enough gold.")
+                    
+            elif buy == "2":
+                
+                if player["gold"] >= 100:
+                    player["gold"] -= 100
+                    inventory(items["weapons"][2])
+                    print("Wooden sword bought!")
+                    
+                else:
+                    print("Not enough gold.")
             
             
         elif action == "m":
@@ -362,3 +456,4 @@ def game():
             
   
 game()
+
