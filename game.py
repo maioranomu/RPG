@@ -9,7 +9,7 @@ def clear_screen():
     elif os.name == 'nt':
         _ = os.system('cls')
 
-data = "G:\Importante\Codes\PY\PROJECTS\Game\gamedata.txt"
+data = "gamedata.txt"
 
 items = {
     "weapons": [
